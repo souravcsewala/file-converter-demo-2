@@ -12,8 +12,7 @@ build/
 # OS generated files
 Thumbs.db
 # Backend uploads and generated files
-backend/uploads/
-backend/files/*.pdf
+
 # Frontend build output
 ui/dist/
 ui/build/
