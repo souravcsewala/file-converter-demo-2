@@ -109,7 +109,7 @@ function Home() {
             <div className="flex flex-col items-center space-y-4">
               <input
                 type="file"
-                accept=".doc,.docx"
+                accept=".docx"
                 onChange={handleFileChange}
                 className="hidden"
                 id="FileInput"
@@ -123,6 +123,7 @@ function Home() {
                   {selectedFile ? selectedFile.name : "Choose File"}
                 </span>
               </label>
+              <p className="text-center text-sm text-gray-600">Only .docx files are supported</p>
               <button
                 onClick={handleSubmit}
                 disabled={!selectedFile || isLoading}
