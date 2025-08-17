@@ -1,10 +1,16 @@
-import React, { useState } from "react";
+import  { useState, useEffect } from "react";
 import { FaFileWord } from "react-icons/fa6";
 import axios from "axios";
+import { serverUrl } from "../global/server";
 function Home() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [convert, setConvert] = useState("");
   const [downloadError, setDownloadError] = useState("");
+  const [showModal, setShowModal] = useState(true);
+
+  useEffect(() => {
+    setShowModal(true);
+  }, []);
 
   const handleFileChange = (e) => {
     // console.log(e.target.files[0]);
@@ -20,7 +26,7 @@ function Home() {
     formData.append("file", selectedFile);
     try {
       const response = await axios.post(
-        "http://localhost:3000/convertFile",
+        `${serverUrl}/convertFile`,
         formData,
         {
           responseType: "blob",
@@ -56,7 +62,30 @@ function Home() {
   };
   return (
     <>
-      <div className="max-w-screen-2xl mx-auto container px-6 py-3 md:px-40">
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              onClick={() => setShowModal(false)}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-xl font-bold mb-2 text-center">This is a demo project</h2>
+            <p className="mb-2 text-center text-red-600 font-semibold">Not scalable for production</p>
+            <p className="mb-2 text-center">A lot of projects are coming like:</p>
+            <ul className="list-disc pl-6 mb-2">
+              <li>PDF converter</li>
+              <li>Image format converter</li>
+              <li>YouTube and Insta video downloader</li>
+            </ul>
+            <p className="mb-2 text-center">Connect with us if you have any feedback.</p>
+            <p className="text-center">Give WhatsApp message on <a href="https://wa.me/919875532535" className="text-blue-600 underline" target="_blank" rel="noopener noreferrer">9875532535</a></p>
+          </div>
+        </div>
+      )}
+      <div className="max-w-screen-2xl mx-auto container px-6 py-3 md:px-40" style={{ backgroundColor: '#caf0f8', minHeight: '100vh' }}>
         <div className="flex h-screen items-center justify-center">
           <div className="border-2 border-dashed px-4 py-2 md:px-8 md:py-6 border-indigo-400 rounded-lg shadow-lg">
             <h1 className="text-3xl font-bold text-center mb-4">
