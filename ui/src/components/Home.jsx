@@ -7,6 +7,7 @@ function Home() {
   const [convert, setConvert] = useState("");
   const [downloadError, setDownloadError] = useState("");
   const [showModal, setShowModal] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setShowModal(true);
@@ -22,6 +23,9 @@ function Home() {
       setConvert("Please select a file");
       return;
     }
+    setIsLoading(true);
+    setConvert("");
+    setDownloadError("");
     const formData = new FormData();
     formData.append("file", selectedFile);
     try {
@@ -58,6 +62,8 @@ function Home() {
       } else {
         setConvert("");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
   return (
@@ -82,6 +88,9 @@ function Home() {
             </ul>
             <p className="mb-2 text-center">Connect with us if you have any feedback.</p>
             <p className="text-center">Give WhatsApp message on <a href="https://wa.me/919875532535" className="text-blue-600 underline" target="_blank" rel="noopener noreferrer">9875532535</a></p>
+            <hr className="my-3" />
+            <p className="text-center text-sm text-gray-600">Maximum file size: 10MB</p>
+            <p className="text-center text-sm text-gray-600">Server is free hosted - may have slow response</p>
           </div>
         </div>
       )}
@@ -115,10 +124,17 @@ function Home() {
               </label>
               <button
                 onClick={handleSubmit}
-                disabled={!selectedFile}
-                className="text-white bg-blue-500 hover:bg-blue-700 disabled:bg-gray-400 disabled:pointer-events-none duration-300 font-bold px-4 py-2 rounded-lg"
+                disabled={!selectedFile || isLoading}
+                className="text-white bg-blue-500 hover:bg-blue-700 disabled:bg-gray-400 disabled:pointer-events-none duration-300 font-bold px-4 py-2 rounded-lg flex items-center justify-center min-w-[120px]"
               >
-                Convert File
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Converting...
+                  </>
+                ) : (
+                  "Convert File"
+                )}
               </button>
               {convert && (
                 <div className="text-green-500 text-center">{convert}</div>
