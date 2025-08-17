@@ -91,6 +91,7 @@ function Home() {
             <hr className="my-3" />
             <p className="text-center text-sm text-gray-600">Maximum file size: 10MB</p>
             <p className="text-center text-sm text-gray-600">Server is free hosted - may have slow response</p>
+            <p className="text-center text-sm text-gray-600">Server may take up to 1 minute to respond</p>
           </div>
         </div>
       )}
