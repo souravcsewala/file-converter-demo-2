@@ -1,12 +1,14 @@
 const express = require("express");
 const multer = require("multer");
 const cors = require("cors");
+const morgan = require("morgan");
 const docxToPDF = require("docx-pdf");
 const path = require("path");
 
 const app = express();
 const port = 3000;
 
+app.use(morgan("combined"));
 app.use(cors());
 
 // settting up the file storage
