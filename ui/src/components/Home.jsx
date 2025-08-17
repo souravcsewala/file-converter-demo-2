@@ -87,7 +87,7 @@ function Home() {
               <li>YouTube and Insta video downloader</li>
             </ul>
             <p className="mb-2 text-center">Connect with us if you have any feedback.</p>
-            <p className="text-center">Give WhatsApp message on <a href="https://wa.me/919875532535" className="text-blue-600 underline" target="_blank" rel="noopener noreferrer">9875532535</a></p>
+            <p className="text-center">Give WhatsApp message on <a href="https://wa.me/919875532535" className="text-blue-600 underline hover:text-blue-800 cursor-pointer" target="_blank" rel="noopener noreferrer">sourav engineer wala</a></p>
             <hr className="my-3" />
             <p className="text-center text-sm text-gray-600">Maximum file size: 10MB</p>
             <p className="text-center text-sm text-gray-600">Server is free hosted - may have slow response</p>
