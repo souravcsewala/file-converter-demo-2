@@ -1,68 +1,45 @@
+// Optional .env support without hard dependency
+require('dotenv').config();
+
 const express = require("express");
-const multer = require("multer");
+const fileUpload = require("express-fileupload");
 const cors = require("cors");
 const morgan = require("morgan");
-const docxToPDF = require("docx-pdf");
-const path = require("path");
+const { connectDB } = require("./config/db");
+const { upload } = require("./controllers/fileController");
+const { getStatus } = require("./controllers/jobController");
 
 const app = express();
 const port = 3000;
 
+// Middleware
 app.use(morgan("combined"));
 app.use(cors());
+app.use(fileUpload({
+    useTempFiles: true,
+    tempFileDir: '/tmp/',
+    limits: { fileSize: 10 * 1024 * 1024 },
+}));
 
-// settting up the file storage
-const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        cb(null, "uploads");
-    },
-    filename: function(req, file, cb) {
-        cb(null, file.originalname);
-    },
+// Routes
+app.post("/upload", upload);
+app.get("/job/:jobId", getStatus);
+
+// Optional: keep old route to avoid 404s; returns error encouraging new flow
+app.post("/convertFile", (req, res) => {
+    return res.status(400).json({ message: "Synchronous conversion disabled. Use /upload then poll /job/:jobId." });
 });
 
-const upload = multer({ storage: storage });
-app.post("/convertFile", upload.single("file"), (req, res, next) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({
-                message: "No file uploaded",
-            });
-        }
+// Start server
+if (!process.env.AWS_S3_BUCKET) {
+    console.error('Configuration error: AWS_S3_BUCKET is not set. Create backend/.env with AWS_S3_BUCKET and AWS credentials.');
+}
 
-        // Check file extension
-        const fileExtension = path.extname(req.file.originalname).toLowerCase();
-        if (fileExtension !== '.docx') {
-            return res.status(400).json({
-                message: "Only .docx files are supported",
-            });
-        }
-
-        // Defining output file path
-        let outputPath = path.join(
-            __dirname,
-            "files",
-            `${req.file.originalname}.pdf`
-        );
-        docxToPDF(req.file.path, outputPath, (err, result) => {
-            if (err) {
-                console.log(err);
-                return res.status(500).json({
-                    message: "Error converting docx to pdf",
-                });
-            }
-            res.download(outputPath, () => {
-                console.log("file downloaded");
-            });
-        });
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            message: "Internal server error",
-        });
-    }
-});
-
-app.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
+connectDB().then(() => {
+    console.log('Connected to MongoDB');
+    app.listen(port, () => {
+        console.log(`Server is listening on port ${port}`);
+    });
+}).catch(err => {
+    console.error('MongoDB connection error:', err);
 });

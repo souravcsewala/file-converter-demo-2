@@ -8,6 +8,8 @@ function Home() {
   const [downloadError, setDownloadError] = useState("");
   const [showModal, setShowModal] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [jobId, setJobId] = useState(() => localStorage.getItem("jobId") || null);
+  const [storedFileName, setStoredFileName] = useState(() => localStorage.getItem("jobFileName") || "");
 
   useEffect(() => {
     setShowModal(true);
@@ -16,6 +18,45 @@ function Home() {
   const handleFileChange = (e) => {
     // console.log(e.target.files[0]);
     setSelectedFile(e.target.files[0]);
+  };
+
+  const startPolling = (id, originalName) => {
+    setIsLoading(true);
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const { data: status } = await axios.get(`${serverUrl}/job/${id}`);
+        if (cancelled) return;
+        if (status.status === 'completed' && status.convertedFileUrl) {
+          const a = document.createElement('a');
+          a.href = status.convertedFileUrl;
+          if (originalName) {
+            a.download = originalName.replace(/\.[^/.]+$/, "") + ".pdf";
+          }
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setSelectedFile(null);
+          setDownloadError("");
+          setConvert("File Converted Successfully");
+          localStorage.removeItem("jobId");
+          localStorage.removeItem("jobFileName");
+          setJobId(null);
+          setStoredFileName("");
+          setIsLoading(false);
+          return;
+        }
+        if (status.status === 'failed') {
+          throw new Error(status.message || 'Conversion failed');
+        }
+        setTimeout(poll, 5000);
+      } catch (err) {
+        setIsLoading(false);
+        setDownloadError(err.message || 'Error while checking job');
+      }
+    };
+    poll();
+    return () => { cancelled = true; };
   };
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -29,43 +70,37 @@ function Home() {
     const formData = new FormData();
     formData.append("file", selectedFile);
     try {
-      const response = await axios.post(
-        `${serverUrl}/convertFile`,
-        formData,
-        {
-          responseType: "blob",
-        }
+      // Step 1: upload and get job id
+      const { data } = await axios.post(
+        `${serverUrl}/upload`,
+        formData
       );
-      console.log(response.data);
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      console.log(url);
-      const link = document.createElement("a");
-      console.log(link);
-      link.href = url;
-      console.log(link);
-      link.setAttribute(
-        "download",
-        selectedFile.name.replace(/\.[^/.]+$/, "") + ".pdf"
-      );
-      console.log(link);
-      document.body.appendChild(link);
-      console.log(link);
-      link.click();
-      link.parentNode.removeChild(link);
-      setSelectedFile(null);
-      setDownloadError("");
-      setConvert("File Converted Successfully");
+      const jobId = data.jobId;
+      // Persist for resume after refresh
+      localStorage.setItem("jobId", jobId);
+      localStorage.setItem("jobFileName", selectedFile.name);
+      setJobId(jobId);
+      setStoredFileName(selectedFile.name);
+      // Step 2: poll for completion
+      startPolling(jobId, selectedFile.name);
     } catch (error) {
       console.log(error);
       if (error.response && error.response.status == 400) {
-        setDownloadError("Error occurred: ", error.response.data.message);
+        setDownloadError("Error occurred: " + error.response.data.message);
       } else {
         setConvert("");
       }
     } finally {
-      setIsLoading(false);
+      // isLoading is cleared in success branch after download or on error
     }
   };
+  // Auto-resume polling on reload if a job is pending
+  useEffect(() => {
+    if (!jobId) return;
+    const cleanup = startPolling(jobId, storedFileName);
+    return cleanup;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobId]);
   return (
     <>
       {showModal && (
