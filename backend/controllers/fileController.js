@@ -4,7 +4,11 @@ const { uploadToS3, generateS3Key, removeLocalFile } = require("../services/file
 
 function getContentTypeByExt(ext) {
     if (ext === '.doc') return 'application/msword';
-    return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    if (ext === '.docx') return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    if (ext === '.xls') return 'application/vnd.ms-excel';
+    if (ext === '.xlsx') return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    if (ext === '.csv') return 'text/csv';
+    return 'application/octet-stream';
 }
 
 async function upload(req, res) {
@@ -15,9 +19,9 @@ async function upload(req, res) {
 
         const uploadedFile = req.files.file;
         const fileExtension = path.extname(uploadedFile.name).toLowerCase();
-        const allowedExtensions = ['.doc', '.docx'];
+        const allowedExtensions = ['.doc', '.docx', '.xls', '.xlsx', '.csv'];
         if (!allowedExtensions.includes(fileExtension)) {
-            return res.status(400).json({ message: "Only .doc and .docx files are supported" });
+            return res.status(400).json({ message: "Only .doc, .docx, .xls, .xlsx and .csv files are supported" });
         }
 
         const tempFilePath = uploadedFile.tempFilePath || path.join('/tmp', uploadedFile.name);

@@ -42,7 +42,7 @@ async function processOne() {
     // Convert and prepare output file name/key
     const outputBuffer = await convertDocToPdf(inputBuffer);
     const originalName = job.originalFileName || 'document.docx';
-    const outputFileName = originalName.replace(/\.(doc|docx)$/i, '.pdf');
+    const outputFileName = originalName.replace(/\.(doc|docx|xls|xlsx|csv)$/i, '.pdf');
     const convertedKey = generateS3Key('converted', outputFileName);
 
     // Upload converted PDF
